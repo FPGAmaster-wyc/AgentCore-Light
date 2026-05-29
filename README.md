@@ -6,8 +6,17 @@
 
 > A BLE-powered status light for Cursor Agent, using ESP32-C3 to visualize AI coding states.
 
-
 ![AgentCore-Light Preview](./media/README/image.png)
+
+## 成品购买（可选）
+
+如果你喜欢这个项目，但暂时没时间自己焊接/调试/打印外壳，也可以直接找我购买成品。
+
+- 3D 打印外壳 + 组装好的整机，到手即用（可按你的需求装配）
+- 外壳颜色可定制（常见色或你指定的颜色都可以沟通）
+- 需要的话也可以提供基础使用/接线支持
+
+联系我：1975670198@qq.com（邮件里写清楚你想要的颜色/版本/接口方式即可）
 
 ---
 
@@ -187,6 +196,10 @@ codex-agent-status-light/
 - claude
 - cursor
 
+
+
+---
+
 # 开源协议（License）
 
 本项目采用 MIT License 开源协议。
@@ -228,13 +241,23 @@ MIT，见 [LICENSE](LICENSE)。
 
 # English
 
-[中文](#agentcore-light)
+[Back to 中文](#agentcore-light)
 
 An open-source, reusable desktop status-light project: uses **ESP32-C3 Mini + WS2812 8-LED ring + SSD1306 OLED + buzzer** to display Codex working status and the 5-hour token percentage.
 
 > A BLE-powered status light for Cursor Agent, using ESP32-C3 to visualize AI coding states.
 
 ![AgentCore-Light Preview](./media/README/image.png)
+
+## Buy a pre-built unit (optional)
+
+If you like this project but don’t have time to solder/debug/3D-print the enclosure, you can also contact me to purchase a finished unit.
+
+- Pre-assembled device with a 3D-printed enclosure, ready to use (built to your requested setup)
+- Enclosure color can be customized (common colors or your specific choice—just ask)
+- Basic setup / wiring support if needed
+
+Contact: 1975670198@qq.com (email me your preferred color + variant + connection method)
 
 ---
 
@@ -415,6 +438,8 @@ See `docs/TROUBLESHOOTING_CN.md`.
 - Desktop tray app (run without terminal)
 - claude
 - cursor
+
+
 
 ---
 
