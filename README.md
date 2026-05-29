@@ -1,11 +1,13 @@
 # AgentCore-Light
 
+**中文** | [English](#english)
+
 一个可开源复用的桌面状态灯项目：用 **ESP32-C3 Mini + WS2812 8灯环 + SSD1306 OLED+ 蜂鸣器** 显示 Codex 工作状态和 5h Token 百分比。
 
 > A BLE-powered status light for Cursor Agent, using ESP32-C3 to visualize AI coding states.
 
 
-![ChatGPT Image 2026年5月28日 17_32_36](./media/README/ChatGPT Image 2026年5月28日 17_32_36.png)
+![AgentCore-Light Preview](./media/README/image.png)
 
 ---
 
@@ -221,3 +223,233 @@ BuildFPGA
 欢迎 Star、Fork 以及提交 Issue 和 Pull Request，共同完善项目。
 
 MIT，见 [LICENSE](LICENSE)。
+
+---
+
+# English
+
+[中文](#agentcore-light)
+
+An open-source, reusable desktop status-light project: uses **ESP32-C3 Mini + WS2812 8-LED ring + SSD1306 OLED + buzzer** to display Codex working status and the 5-hour token percentage.
+
+> A BLE-powered status light for Cursor Agent, using ESP32-C3 to visualize AI coding states.
+
+![AgentCore-Light Preview](./media/README/image.png)
+
+---
+
+## 1. Overview
+
+AgentCore-Light turns an ESP32-C3 + Agent into a PC-controlled desktop status light.
+
+Core idea:
+
+- Use **ESP32-C3 SuperMini** as the main controller.
+- Peripherals: WS2812 8-LED ring + 0.96" OLED + buzzer.
+- Receive status commands from host scripts via **BLE / Serial / Network**.
+- Combine Agent Hooks so the Agent’s runtime state automatically maps to light effects.
+
+## 2. Features
+
+- Control status via serial commands:
+  - `IDLE`
+  - `THINKING`
+  - `WRITING`
+  - `RUNNING`
+  - `DONE`
+  - `ERROR`
+  - `NEED_CONFIRM`
+  - `TOKEN:x`
+- OLED display:
+  - `Codex`
+  - Current status (large text)
+  - `Token xx%` + progress bar
+- OLED supports 180° rotation and uses a centered “safe horizontal area” (to fit an enclosure cutout)
+- All animations are non-blocking based on `millis()`; serial commands can interrupt at any time
+- Includes a Codex Hook → serial bridge script
+
+---
+
+## 3. Hardware Bill of Materials
+
+| Category | Part | Qty | Notes |
+|---|---|---:|---|
+| MCU | ESP32-C3 SuperMini dev board | 1 | Recommend un-soldered header version (easier to fit into the case) |
+| Core | 0.96" OLED display | 1 | Recommend un-soldered header version |
+| Core | WS2812 8-LED ring | 1 | Any compatible 8-LED ring works |
+| Core | Buzzer | 1 | Active buzzer (low-level active) |
+| Screws | M2*10 | 4 | For the back cover |
+| Screws | M3*5 | 3 | For buzzer & OLED mounting |
+| Wires | Hookup wire | - | Avoid very thick wires (hard to route) |
+| Tools | Soldering iron, solder, tweezers, screwdrivers | - | Basic soldering skills required |
+| Testing | Multimeter | Optional | For continuity/short checks |
+
+---
+
+## 4. Wiring
+
+### WS2812
+
+| WS2812 | Signal | ESP32 Pin |
+|---|---|---|
+| DI | Data in | GPIO4 |
+| GND | Ground | GND |
+| VCC | Power | 5V |
+
+### OLED (I2C)
+
+| OLED | Signal | ESP32 Pin |
+|---|---|---|
+| SDA | I2C SDA | GPIO8 |
+| SCL | I2C SCL | GPIO9 |
+| VCC | Power | 3.3V |
+| GND | Ground | GND |
+
+### Buzzer
+
+| Buzzer | Signal | ESP32 Pin |
+|---|---|---|
+| DI | Control (active-low) | GPIO3 |
+| VCC | Power | 3.3V |
+| GND | Ground | GND |
+
+---
+
+## 5. Project Layout
+
+```text
+codex-agent-status-light/
+├─ firmware/
+│  └─ esp32s3_codex_status_light.ino
+├─ host/
+│  ├─ codex_light_serial.py
+│  ├─ codex_light_hook.py
+│  ├─ start_codex_light_daemon.ps1
+│  ├─ set_token_percent.ps1
+│  ├─ calibrate_token_budget.py
+│  └─ agent_light_control.py
+├─ hooks/
+│  └─ hooks.json.example
+├─ docs/
+│  ├─ QUICKSTART_CN.md
+│  └─ TROUBLESHOOTING_CN.md
+├─ requirements.txt
+├─ .gitignore
+└─ LICENSE
+```
+
+---
+
+## 6. Tech Stack
+
+- Firmware: Arduino Framework (ESP32)
+- LEDs: Adafruit NeoPixel
+- OLED: Adafruit SSD1306 + Adafruit GFX + Wire
+- Host side: Python 3 + pyserial + local TCP daemon
+- Automation: Codex Hooks (command callback scripts)
+
+---
+
+## 7. Quick Start
+
+Detailed steps (Chinese) in `docs/QUICKSTART_CN.md`.
+
+Shortest path:
+
+1. Open `firmware/esp32s3_codex_status_light.ino` in Arduino IDE and upload to ESP32-C3
+2. Install Python dependencies: `pip install -r requirements.txt`
+3. Start the daemon: `host/start_codex_light_daemon.ps1`
+4. Test by sending a command manually: `py -3 host/codex_light_serial.py send THINKING`
+5. Configure and enable Codex hooks (see `hooks/hooks.json.example`)
+
+---
+
+## 8. Status Mapping (current implementation)
+
+- `UserPromptSubmit` -> `THINKING`
+- `PreToolUse`
+  - `apply_patch` -> `WRITING`
+  - Other tools -> `RUNNING`
+- `PostToolUse` -> `THINKING` (on failure: `ERROR`)
+- `Stop` -> `DONE` (firmware returns to `IDLE` after 10 seconds)
+- `SessionStart` -> `IDLE`
+
+---
+
+## 9. Token Percentage
+
+Two options are currently supported:
+
+1. Manual exact sync (recommended)  
+   `powershell -File host/set_token_percent.ps1 15`
+
+2. Automatic estimated sync (optional)  
+   `codex_light_hook.py` can estimate a percentage based on local `tokens_used` (this is not an official remaining quota value).
+
+---
+
+## 10. Implemented Light Effects
+
+- `IDLE`: deep-blue soft breathing + number of lit LEDs based on `tokenPercent`
+- `THINKING`: purple “neural pulse” rotation (slight speed variation)
+- `WRITING`: cyan/blue “data stream” chase
+- `RUNNING`: orange/red dual-dot fast scan
+- `DONE`: teal spread wave for 10 seconds
+- `ERROR`: randomized red glitch flicker
+- `NEED_CONFIRM`: white double-flash + pause
+- `TOKEN_LOW` (`tokenPercent < 10`): low-frequency red/blue reminder during IDLE
+
+---
+
+## 11. FAQ
+
+See `docs/TROUBLESHOOTING_CN.md`.
+
+---
+
+## 12. Roadmap (coming soon)
+
+- BLE / Wi-Fi control channels
+- Sync with an official “remaining quota” API
+- Multi-device status broadcast
+- Desktop tray app (run without terminal)
+- claude
+- cursor
+
+---
+
+# License
+
+This project is released under the MIT License.
+
+You may:
+
+- Use the code for free
+- Modify the source
+- Use it for personal learning or commercial projects
+- Redistribute, repost, or build derivatives
+- Integrate it into other software
+
+With these conditions:
+
+- Keep the original copyright notice
+- Keep author attribution
+- Keep the MIT License text
+- Include the original LICENSE file when redistributing
+
+## Disclaimer
+
+This project is provided “AS IS”, without warranty of any kind (express or implied), including but not limited to merchantability, fitness for a particular purpose, and non-infringement.
+
+The author is not liable for any direct or indirect damages arising from the use of this project.
+
+## Author
+
+BuildFPGA  
+Email: 1975670198@qq.com
+
+## Welcome
+
+Stars, forks, Issues, and Pull Requests are welcome.
+
+MIT — see `LICENSE`.
