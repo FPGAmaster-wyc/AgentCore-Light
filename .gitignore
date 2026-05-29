@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Arduino build artifacts
+*.elf
+*.bin

@@ -1,0 +1,80 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py -3 \"./host/codex_light_hook.py\"",
+            "commandWindows": "py -3 \".\\host\\codex_light_hook.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py -3 \"./host/codex_light_hook.py\"",
+            "commandWindows": "py -3 \".\\host\\codex_light_hook.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py -3 \"./host/codex_light_hook.py\"",
+            "commandWindows": "py -3 \".\\host\\codex_light_hook.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py -3 \"./host/codex_light_hook.py\"",
+            "commandWindows": "py -3 \".\\host\\codex_light_hook.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py -3 \"./host/codex_light_hook.py\"",
+            "commandWindows": "py -3 \".\\host\\codex_light_hook.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py -3 \"./host/codex_light_hook.py\"",
+            "commandWindows": "py -3 \".\\host\\codex_light_hook.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
