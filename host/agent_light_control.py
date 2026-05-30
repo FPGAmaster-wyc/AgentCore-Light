@@ -18,7 +18,7 @@ COMMANDS = {
 
 def show_menu():
     print()
-    print("ESP32-S3 AI Agent 状态灯控制")
+    print("ESP32-C3 AI Agent 状态灯控制")
     print("1 IDLE")
     print("2 THINKING")
     print("3 WRITING")

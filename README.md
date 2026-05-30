@@ -100,7 +100,7 @@ AgentCore-Light 将一个ESP32 -C3 结合Agent 改造成可由电脑控制的桌
 ```text
 codex-agent-status-light/
 ├─ firmware/
-│  └─ esp32s3_codex_status_light.ino
+│  └─ esp32c3_codex_status_light.ino
 ├─ host/
 │  ├─ codex_light_serial.py
 │  ├─ codex_light_hook.py
@@ -136,7 +136,7 @@ codex-agent-status-light/
 
 最短流程：
 
-1. Arduino IDE 打开 `firmware/esp32s3_codex_status_light.ino` 并上传到 ESP32-C3  
+1. Arduino IDE 打开 `firmware/esp32c3_codex_status_light.ino` 并上传到 ESP32-C3  
 2. 安装 Python 依赖：`pip install -r requirements.txt`  
 3. 启动 daemon：`host/start_codex_light_daemon.ps1`  
 4. 先手动发送命令测试：`py -3 host/codex_light_serial.py send THINKING`  
@@ -178,6 +178,7 @@ codex-agent-status-light/
 - `ERROR`：随机红色故障闪烁
 - `NEED_CONFIRM`：白色双闪+暂停
 - `TOKEN_LOW`（`tokenPercent < 10`）：IDLE 下低频红蓝提醒
+- `DONE` 时蜂鸣器短促响 3 次（更安静可调短 `BUZZER_BEEP_ON_MS` 或串电阻）
 
 ---
 
@@ -343,7 +344,7 @@ Core idea:
 ```text
 codex-agent-status-light/
 ├─ firmware/
-│  └─ esp32s3_codex_status_light.ino
+│  └─ esp32c3_codex_status_light.ino
 ├─ host/
 │  ├─ codex_light_serial.py
 │  ├─ codex_light_hook.py
@@ -379,7 +380,7 @@ Detailed steps (Chinese) in `docs/QUICKSTART_CN.md`.
 
 Shortest path:
 
-1. Open `firmware/esp32s3_codex_status_light.ino` in Arduino IDE and upload to ESP32-C3
+1. Open `firmware/esp32c3_codex_status_light.ino` in Arduino IDE and upload to ESP32-C3
 2. Install Python dependencies: `pip install -r requirements.txt`
 3. Start the daemon: `host/start_codex_light_daemon.ps1`
 4. Test by sending a command manually: `py -3 host/codex_light_serial.py send THINKING`

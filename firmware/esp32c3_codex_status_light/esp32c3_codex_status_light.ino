@@ -7,6 +7,19 @@
 #define LED_COUNT 8
 #define LED_BRIGHTNESS 10
 
+#define BUZZER_PIN 3
+#define BUZZER_ACTIVE_LOW 1
+// If your buzzer is passive (or you want softer sound), keep PWM enabled.
+// For an active buzzer, PWM still works but behavior depends on the module.
+#define BUZZER_USE_PWM 0
+
+#define BUZZER_TONE_HZ 2200
+// 0-255 (8-bit duty). Lower = quieter (for passive buzzers).
+#define BUZZER_DUTY 10
+#define BUZZER_BEEP_ON_MS 70
+#define BUZZER_BEEP_OFF_MS 120
+#define BUZZER_BEEP_TIMES 3
+
 #define OLED_SDA 8
 #define OLED_SCL 9
 #define SCREEN_WIDTH 128
@@ -46,6 +59,77 @@ int pulseStep = 0;
 bool alertPhaseBlue = true;
 int oledSpinner = 0;
 
+AgentState previousState = STATE_IDLE;
+
+bool doneBeepArmed = false;
+bool doneBeepOn = false;
+int doneBeepCount = 0;
+unsigned long doneBeepNextAt = 0;
+
+#if BUZZER_USE_PWM
+static const int kBuzzerPwmChannel = 0;
+static const int kBuzzerPwmResolution = 8;
+#endif
+
+void buzzerInit() {
+  pinMode(BUZZER_PIN, OUTPUT);
+
+#if BUZZER_USE_PWM
+  // Keep duty at 0 until needed.
+  ledcSetup(kBuzzerPwmChannel, BUZZER_TONE_HZ, kBuzzerPwmResolution);
+  ledcAttachPin(BUZZER_PIN, kBuzzerPwmChannel);
+  ledcWrite(kBuzzerPwmChannel, 0);
+#else
+  digitalWrite(BUZZER_PIN, BUZZER_ACTIVE_LOW ? HIGH : LOW);
+#endif
+}
+
+void buzzerWrite(bool on) {
+#if BUZZER_USE_PWM
+  ledcWrite(kBuzzerPwmChannel, on ? BUZZER_DUTY : 0);
+#else
+  bool level = on ? (BUZZER_ACTIVE_LOW ? LOW : HIGH) : (BUZZER_ACTIVE_LOW ? HIGH : LOW);
+  digitalWrite(BUZZER_PIN, level);
+#endif
+}
+
+void startDoneBeepSequence() {
+  doneBeepArmed = true;
+  doneBeepOn = false;
+  doneBeepCount = 0;
+  doneBeepNextAt = 0;
+  buzzerWrite(false);
+}
+
+void updateBuzzer() {
+  if (!doneBeepArmed) {
+    return;
+  }
+
+  unsigned long now = millis();
+  if (doneBeepNextAt != 0 && now < doneBeepNextAt) {
+    return;
+  }
+
+  if (!doneBeepOn) {
+    if (doneBeepCount >= BUZZER_BEEP_TIMES) {
+      doneBeepArmed = false;
+      buzzerWrite(false);
+      return;
+    }
+
+    doneBeepOn = true;
+    buzzerWrite(true);
+    doneBeepNextAt = now + BUZZER_BEEP_ON_MS;
+    return;
+  }
+
+  doneBeepOn = false;
+  doneBeepCount++;
+  buzzerWrite(false);
+  doneBeepNextAt = now + BUZZER_BEEP_OFF_MS;
+}
+
 void setup() {
   Serial.begin(115200);
   serialBuffer.reserve(32);
@@ -68,12 +152,14 @@ void setup() {
   }
 
   setState(STATE_IDLE);
-  Serial.println("ESP32-S3 AI Agent status light ready.");
+  buzzerInit();
+  Serial.println("ESP32-C3 AI Agent status light ready.");
   Serial.println("Commands: IDLE, THINKING, WRITING, RUNNING, DONE, ERROR, NEED_CONFIRM, TOKEN:x");
 }
 
 void loop() {
   readSerialCommands();
+  updateBuzzer();
 
   switch (currentState) {
     case STATE_IDLE:
@@ -168,6 +254,7 @@ void handleCommand(String command) {
 }
 
 void setState(AgentState newState) {
+  previousState = currentState;
   currentState = newState;
   stateStartedAt = millis();
   lastLedFrameAt = 0;
@@ -183,6 +270,10 @@ void setState(AgentState newState) {
   pixels.setBrightness(LED_BRIGHTNESS);
   pixels.clear();
   pixels.show();
+
+  if (currentState == STATE_DONE && previousState != STATE_DONE) {
+    startDoneBeepSequence();
+  }
 
   if (currentState == STATE_IDLE) {
     showTokenBreath();
