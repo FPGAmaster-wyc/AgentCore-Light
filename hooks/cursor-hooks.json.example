@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart":       [{ "command": "sh \"~/.cursor/hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "sessionEnd":         [{ "command": "sh \"~/.cursor/hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "beforeSubmitPrompt": [{ "command": "sh \"~/.cursor/hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "preToolUse":         [{ "command": "sh \"~/.cursor/hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "postToolUse":        [{ "command": "sh \"~/.cursor/hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "postToolUseFailure": [{ "command": "sh \"~/.cursor/hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "subagentStart":      [{ "command": "sh \"~/.cursor/hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "subagentStop":       [{ "command": "sh \"~/.cursor/hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "preCompact":         [{ "command": "sh \"~/.cursor/hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "afterAgentResponse": [{ "command": "sh \"~/.cursor/hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "stop":               [{ "command": "sh \"~/.cursor/hooks/agentcore-light.sh\"", "timeout": 5 }]
+  }
+}
