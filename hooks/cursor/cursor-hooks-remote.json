@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart":          [{ "command": "sh \"./hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "sessionEnd":            [{ "command": "sh \"./hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "beforeSubmitPrompt":    [{ "command": "sh \"./hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "preToolUse":            [{ "command": "sh \"./hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "postToolUse":           [{ "command": "sh \"./hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "postToolUseFailure":    [{ "command": "sh \"./hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "subagentStart":         [{ "command": "sh \"./hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "subagentStop":          [{ "command": "sh \"./hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "preCompact":            [{ "command": "sh \"./hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "stop":                  [{ "command": "sh \"./hooks/agentcore-light.sh\"", "timeout": 5 }],
+    "afterAgentResponse":    [{ "command": "sh \"./hooks/agentcore-light.sh\"", "timeout": 5 }]
+  }
+}
