@@ -1,0 +1,10 @@
+{
+  "name": "agent-signal-light-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Web-first MVP for visualizing AI agent activity as a signal light.",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  }
+}

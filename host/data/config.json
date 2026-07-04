@@ -1,0 +1,133 @@
+{
+  "version": 3,
+  "effects": [
+    {
+      "id": "idle_green",
+      "name": "Idle Green",
+      "builtin": true,
+      "frames": [
+        { "leds": ["on", "off", "off"], "ms": null }
+      ]
+    },
+    {
+      "id": "working_yellow",
+      "name": "Working",
+      "builtin": true,
+      "frames": [
+        { "leds": ["off", "breathe", "off"], "ms": null }
+      ]
+    },
+    {
+      "id": "wait_user",
+      "name": "Waiting for User",
+      "builtin": true,
+      "frames": [
+        { "leds": ["off", "on",  "off"], "ms": 1000 },
+        { "leds": ["off", "off", "off"], "ms": 1000 },
+        { "leds": ["off", "on",  "off"], "ms": 1000 },
+        { "leds": ["off", "off", "off"], "ms": 1000 },
+        { "leds": ["off", "on",  "off"], "ms": 7000 }
+      ]
+    },
+    {
+      "id": "error_red",
+      "name": "Error",
+      "builtin": true,
+      "frames": [
+        { "leds": ["off", "off", "on"],  "ms": 1000 },
+        { "leds": ["off", "off", "off"], "ms": 1000 },
+        { "leds": ["off", "off", "on"],  "ms": 1000 },
+        { "leds": ["off", "off", "off"], "ms": 1000 },
+        { "leds": ["off", "off", "on"],  "ms": 7000 }
+      ]
+    },
+    {
+      "id": "off",
+      "name": "Off",
+      "builtin": true,
+      "frames": [
+        { "leds": ["off", "off", "off"], "ms": null }
+      ]
+    },
+    {
+      "id": "unknown_tricolor",
+      "name": "Unknown (Tricolor Slow)",
+      "builtin": true,
+      "frames": [
+        { "leds": ["on",  "off", "off"], "ms": 600 },
+        { "leds": ["off", "on",  "off"], "ms": 600 },
+        { "leds": ["off", "off", "on" ], "ms": 600 }
+      ]
+    }
+  ],
+  "event_bindings": {
+    "SessionStart":                "idle_green",
+    "UserPromptSubmit":            "working_yellow",
+    "PreToolUse":                  "working_yellow",
+    "PostToolUse":                 "working_yellow",
+    "PermissionRequest":           "wait_user",
+    "PreCompact":                  "working_yellow",
+    "PostCompact":                 "working_yellow",
+    "SubagentStart":               "working_yellow",
+    "SubagentStop":                "working_yellow",
+    "Stop":                        "idle_green",
+    "StopFailure":                 "error_red",
+    "Notification":                "wait_user",
+    "Elicitation":                 "wait_user",
+    "PreToolUse:AskUserQuestion":  "wait_user",
+    "PostToolUse:AskUserQuestion": "working_yellow"
+  },
+  "event_priority": [
+    "StopFailure",
+    "PermissionRequest",
+    "Notification",
+    "Elicitation",
+    "PreToolUse:AskUserQuestion",
+    "Stop",
+    "SessionStart",
+    "PostToolUse:AskUserQuestion",
+    "UserPromptSubmit",
+    "PreToolUse",
+    "PostToolUse",
+    "PreCompact",
+    "PostCompact",
+    "SubagentStart",
+    "SubagentStop"
+  ],
+  "agent_priority": {
+    "claude": [
+      "StopFailure",
+      "PermissionRequest",
+      "Notification",
+      "Elicitation",
+      "PreToolUse:AskUserQuestion",
+      "Stop",
+      "SessionStart",
+      "PostToolUse:AskUserQuestion",
+      "UserPromptSubmit",
+      "PreToolUse",
+      "PostToolUse",
+      "PreCompact",
+      "PostCompact",
+      "SubagentStart",
+      "SubagentStop"
+    ],
+    "codex": [
+      "StopFailure",
+      "PermissionRequest",
+      "Notification",
+      "Elicitation",
+      "PreToolUse:AskUserQuestion",
+      "Stop",
+      "SessionStart",
+      "PostToolUse:AskUserQuestion",
+      "UserPromptSubmit",
+      "PreToolUse",
+      "PostToolUse",
+      "PreCompact",
+      "PostCompact",
+      "SubagentStart",
+      "SubagentStop"
+    ]
+  }
+}
