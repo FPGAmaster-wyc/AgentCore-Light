@@ -1,9 +1,11 @@
 # Python
 __pycache__/
 *.pyc
+.venv/
 
 # Logs
 *.log
+*.log.*
 
 # OS
 .DS_Store
@@ -12,3 +14,7 @@ Thumbs.db
 # Arduino build artifacts
 *.elf
 *.bin
+firmware/**/build/
+
+# Local tools, applications, device settings and flash backups
+.local/

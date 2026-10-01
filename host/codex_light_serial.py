@@ -1,4 +1,5 @@
 import argparse
+import json
 import socket
 import sys
 import time
@@ -50,11 +51,39 @@ def send_direct(command):
 
 
 def send_via_daemon(command):
-    with socket.create_connection((HOST, TCP_PORT), timeout=0.3) as sock:
+    return request_daemon(command) in ("OK", "QUEUED")
+
+
+def request_daemon(command):
+    with socket.create_connection((HOST, TCP_PORT), timeout=3) as sock:
         sock.sendall((command + "\n").encode("utf-8"))
         sock.shutdown(socket.SHUT_WR)
-        reply = sock.recv(64).decode("utf-8", errors="replace").strip()
-        return reply == "OK"
+        data = b""
+        while b"\n" not in data and len(data) < 262144:
+            part = sock.recv(4096)
+            if not part:
+                break
+            data += part
+        reply = data.decode("utf-8", errors="replace").strip()
+        if reply.startswith("ERR "):
+            raise RuntimeError(reply[4:])
+        return reply
+
+
+def send_event(event, state):
+    session = next((event[key].strip() for key in ("thread_id", "session_id")
+                    if isinstance(event.get(key), str) and event[key].strip()), None)
+    if not isinstance(session, str) or not session:
+        return send_command(state, fallback_direct=False)
+    payload = {"session_id": session, "source_session_id": event.get("session_id"),
+               "turn_id": event.get("turn_id"), "event": event.get("hook_event_name"), "state": state}
+    # Preserve missing vs explicit null for older hooks and legacy callers.
+    if "transcript_path" in event:
+        payload["transcript_path"] = event["transcript_path"]
+    reply = request_daemon(json.dumps(payload))
+    if reply != "QUEUED":
+        raise RuntimeError("Session event was not accepted")
+    return state
 
 
 def send_command(command, prefer_daemon=True, fallback_direct=True):
@@ -115,8 +144,10 @@ def run_daemon():
                         command = normalize_command(raw)
                         ser.write((command + "\n").encode("utf-8"))
                         ser.flush()
-                        last_command = command
-                        last_command_at = time.monotonic()
+                        # Quota updates must not replace activity or extend its idle deadline.
+                        if not command.startswith("TOKEN:"):
+                            last_command = command
+                            last_command_at = time.monotonic()
                         conn.sendall(b"OK\n")
                         with log_path.open("a", encoding="utf-8") as log_fp:
                             log_fp.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} {command}\n")
@@ -133,8 +164,13 @@ def main():
     send_parser.add_argument("--direct", action="store_true", help="open COM port directly")
 
     subparsers.add_parser("daemon", help="keep COM port open and receive local commands")
+    subparsers.add_parser("status", help="read macOS device service status")
 
     args = parser.parse_args()
+
+    if args.command == "status":
+        print(request_daemon("HOST_STATUS"))
+        return
 
     if args.command == "daemon":
         run_daemon()

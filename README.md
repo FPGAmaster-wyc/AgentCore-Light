@@ -2,6 +2,54 @@
 
 **中文** | [English](#english)
 
+## 此 fork 的 macOS / v3 支持
+
+在原项目基础上新增 macOS Codex 状态灯适配，面向 **ESP32-C3 + 8 灯 WS2812 + SSD1306 OLED（v3 无蜂鸣器）**：
+
+- 原生菜单栏控制、登录启动、USB 自动重连及多任务状态协调。
+- 每个任务固定颜色，整圈走马灯每 5 秒切换任务。
+- OLED 显示真实 Chat Title，支持中文和长标题滚动，与任务状态同步。
+- 自动同步 Codex **周剩余额度**；待机亮灯数量表示剩余额度。
+
+**安装与协议说明：[macOS v3 适配](docs/MACOS_V3.md)** · [周额度同步](docs/TOKEN_SYNC_MACOS.md)
+
+### macOS 独立 App 使用方法
+
+**下载：[v0.2.0 App 安装包（Apple Silicon）](https://github.com/flytianwu/AgentCore-Light/releases/download/v0.2.0/AgentCore-Light-macOS-arm64.zip)** · [Release 说明与 SHA-256 校验文件](https://github.com/flytianwu/AgentCore-Light/releases/tag/v0.2.0)
+
+`AgentCore Light.app` 是原生菜单栏应用，内置 Python 和串口依赖。使用打包后的 App 不需要安装 Python、pip、Xcode 或保留项目源码；仍需安装并登录 Codex，以及已烧录 v3 固件的 ESP32-C3。MAC4 固件支持任务分色、中文 Chat Title 和长标题滚动，App 不会自动烧录固件。
+
+1. 解压 `AgentCore-Light-macOS-arm64.zip`，将 **AgentCore Light.app** 移到 `/Applications`（或 `~/Applications`），再双击打开。它显示在 macOS 顶部菜单栏的灯泡图标中，没有普通主窗口。
+2. 用支持数据传输的 USB 线连接设备。首次打开会显示安装对话框，选择设备序列号并核对 Codex 可执行文件路径，点击“安装”。只有一台设备时会自动选中；没有检测到设备时，连接后点击菜单中的“安装 / 更新后台服务…”。
+3. 安装会备份并更新本项目的后台服务、登录项和全局 Codex hooks，保留其他 hooks。从旧源码安装升级时，会迁移亮度、开关和额度设置，并替换旧 hook 命令，避免重复上报。在 **Codex Settings → Hooks** 中信任更新后的 hooks。
+4. 打开任意本机 Codex chat 并发送任务，检查灯光和 OLED 是否跟随状态变化。多任务按固定颜色每项轮播 5 秒；任务名称读取真实 Chat Title。空闲时亮灯数量表示 **周剩余额度**，例如 85% 会亮 7 个灯。
+
+菜单可查看设备连接、当前任务及颜色、周剩余额度与更新时间，调整亮度、开关灯光、重新连接设备，或点击“立即同步周额度”。自动额度同步每 5 分钟运行一次，来自 Codex CLI 当前登录账号。
+
+**退出与卸载：**“退出菜单栏（服务继续运行）”只关闭菜单，状态和额度同步继续运行，登录时自动启动。Mac 睡眠或关机期间不会同步。要停止同步并卸载登录项及本项目 hooks，先选择“停止并移除后台服务…”，然后退出并删除 App；配置、日志和备份保留。
+
+**配置与更新：**数据存放在 `~/Library/Application Support/AgentCore Light/`；`host/` 保存日志，`backups/` 保存安装前配置。安装后不要移动或改名 App；更新时在原位置替换 App，打开后选择“安装 / 更新后台服务…”，Codex 路径发生变化时也用此入口更新。Codex 内置路径可自动检测，也可填写单独安装的 CLI 绝对路径。
+
+**系统范围：**当前打包产物为 Apple Silicon（arm64），最低 macOS 27，已在 macOS 27 上验证命令行与打包完整性；其他系统版本仍需实际验收。Intel Mac 或更早 macOS 需在对应兼容环境重新构建。当前使用本地 ad-hoc 签名，未做 Developer ID 签名或 Apple 公证；通过网络下载到另一台 Mac 时，系统可能要求在“系统设置 → 隐私与安全性”允许打开。不要关闭系统整体安全检查。
+
+### 从源码构建 macOS App
+
+构建者需要 macOS、Python 3 和 Xcode Command Line Tools（`xcode-select --install`）。从项目根目录执行：
+
+```sh
+python3 -m venv .local/package-venv
+.local/package-venv/bin/python -m pip install -r requirements-macos-build.txt
+.local/package-venv/bin/python host/build_macos_app.py
+```
+
+产物为 `.local/dist/AgentCore Light.app` 和 `.local/dist/AgentCore-Light-macOS-<架构>.zip`，不会将本机 Codex 凭据、设备配置、日志或 Flash 备份打入包内。构建脚本使用 [PyInstaller](https://pyinstaller.org/en/stable/usage.html) 封装已有主机模块，编译 Swift 菜单栏程序并签名、验证、压缩；系统最低版本依据 Python 和所有内置运行库的部署目标确定。构建产物不提交到 Git，分发时使用 ZIP。
+
+旧版 Windows 脚本、蜂鸣器固件和原作者说明保留在下方；请按自己的硬件版本选择固件。
+本 fork 不提供原作者的成品销售服务，下方购买联系方式来自上游项目。
+
+---
+
+
 一个可开源复用的桌面状态灯项目：用 **ESP32-C3 Mini + WS2812 8灯环 + SSD1306 OLED+ 蜂鸣器** 显示 Codex 工作状态和 5h Token 百分比。
 
 > A BLE-powered status light for Cursor Agent, using ESP32-C3 to visualize AI coding states.

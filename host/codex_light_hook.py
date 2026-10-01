@@ -2,12 +2,14 @@ import json
 import os
 import sqlite3
 import sys
+from datetime import datetime
 from pathlib import Path
 
-from codex_light_serial import send_command
+from codex_light_serial import send_command, send_event
 
 
-LOG_PATH = Path(__file__).with_name("codex_light_hook.log")
+LOG_PATH = (Path(os.environ["AGENTCORE_LIGHT_HOME"]) / "host/codex_light_hook.log"
+            if "AGENTCORE_LIGHT_HOME" in os.environ else Path(__file__).with_name("codex_light_hook.log"))
 STATE_DB_PATH = Path.home() / ".codex" / "state_5.sqlite"
 DEFAULT_TOKEN_BUDGET = 120000
 
@@ -113,16 +115,22 @@ def command_for_event(event):
 
     if event_name == "PostToolUse":
         response = event.get("tool_response")
-        response_text = json.dumps(response, ensure_ascii=False).lower()
-        if any(word in response_text for word in ("error", "failed", "exit code: 1", "exit status 1")):
-            return "ERROR"
+        # Output text can contain source code or quoted errors, even on success.
+        # Some Codex tools return text only; do not infer failure from that text.
+        if isinstance(response, dict):
+            exit_code = response.get("exit_code")
+            if response.get("isError") is True or (type(exit_code) is int and exit_code != 0):
+                return "ERROR"
         return "THINKING"
 
     if event_name == "PermissionRequest":
-        return "ERROR"
+        return "NEED_CONFIRM"
 
     if event_name == "Stop":
         return "DONE"
+
+    if event_name in ("Interrupt", "SessionEnd"):
+        return "IDLE"
 
     if event_name in ("PreCompact", "PostCompact"):
         return "THINKING"
@@ -136,7 +144,11 @@ def main():
     event_name = event.get("hook_event_name", "unknown")
     tool_name = event.get("tool_name", "")
 
-    log(f"event={event_name} tool={tool_name} command={command or '-'}")
+    log(json.dumps({"at": datetime.now().astimezone().isoformat(), "event": event_name,
+                    "tool": tool_name, "command": command, "thread_id": event.get("thread_id"),
+                    "session_id": event.get("session_id"), "turn_id": event.get("turn_id"),
+                    "transcript_field_present": "transcript_path" in event,
+                    "session_has_transcript": bool(event.get("transcript_path"))}, ensure_ascii=False))
 
     token_percent = compute_token_percent(event)
     if token_percent is not None:
@@ -144,7 +156,7 @@ def main():
         log(f"sent={sent_token}")
 
     if command:
-        sent = send_command(command, prefer_daemon=True, fallback_direct=False)
+        sent = send_event(event, command)
         log(f"sent={sent}")
 
     if event.get("hook_event_name") == "Stop":
